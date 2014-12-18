@@ -40,11 +40,9 @@ func (a *AuthTokens) Set(token *AuthToken) {
 }
 
 func (a *AuthTokens) TokenService() *AuthTokens {
-
 	for {
 		select {
-
-		case tid := <-a.chanReqToken:
+		case tid := <-a.chanReqToken: //AuthTokens.Get
 			if token, ok := a.tokens[tid]; ok {
 				if token.expiration.Add(tokenExpiration).Before(time.Now()) {
 					a.tokens[tid] = nil
@@ -55,8 +53,7 @@ func (a *AuthTokens) TokenService() *AuthTokens {
 			} else {
 				a.chanResToken <- nil
 			}
-
-		case token := <-a.chanPutToken:
+		case token := <-a.chanPutToken: //AuthTokens.Set
 			a.tokens[token.id] = token
 		}
 	}

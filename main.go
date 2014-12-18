@@ -6,12 +6,12 @@ import (
 	"flag"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
+	"github.com/nu7hatch/gouuid"
 	"net"
 	"net/http"
 	"os"
 	"strconv"
-	"strings"
-	"sync"
 	"time"
 )
 
@@ -20,10 +20,8 @@ var (
 	errNoToken       = errors.New("no token found")
 
 	address             string
-	accounts            map[string]string
-	accountTime         time.Time
+	accounts            = NewAccounts()
 	accountCheckSeconds time.Duration
-	acctsMu             sync.RWMutex
 	tokens              = NewAuthTokens()
 	tokenExpiration     time.Duration
 )
@@ -38,6 +36,7 @@ func main() {
 	tokenExpiration, _ = time.ParseDuration(strconv.FormatInt(*tExp, 10) + "s")
 	accountCheckSeconds, _ = time.ParseDuration(strconv.FormatInt(*acs, 10) + "s")
 
+	go accounts.AccountsService()
 	go tokens.TokenService()
 
 	fileServer := http.FileServer(http.Dir("web/"))
@@ -54,31 +53,6 @@ func main() {
 	})
 
 	r.Run(address)
-}
-
-func authenticated() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		if strings.Contains(c.Request.URL.String(), "/login") {
-			return
-		}
-		var tokenID string
-		if cookie, err := c.Request.Cookie("X-Auth-Token"); err != nil {
-			c.Redirect(303, "/login")
-			c.Abort(303)
-			return
-		} else {
-			tokenID = cookie.Value
-		}
-
-		token, err := tokens.Get(tokenID)
-		if err != nil {
-			c.Redirect(303, "/login")
-			c.Abort(303)
-			return
-		}
-
-		c.Set("token", token)
-	}
 }
 
 type Trial struct {
@@ -122,11 +96,43 @@ func postResults(c *gin.Context) {
 }
 
 func getLogin(c *gin.Context) {
-	c.HTML(200, "login.tmpl", gin.H{})
+	if retry := c.Request.URL.Query().Get("retry"); retry != "" {
+		c.HTML(200, "login.tmpl", gin.H{
+			"message": "Please check credentials and try again.",
+		})
+	} else {
+		c.HTML(200, "login.tmpl", gin.H{})
+	}
 }
 
 func postLogin(c *gin.Context) {
 	var req AuthenticateRequest
-	c.Bind(&req)
 
+	if err := binding.Form.Bind(c.Request, &req); err != nil {
+		c.Fail(500, err)
+	}
+
+	if accounts.Challenge(&req) {
+		id, err := uuid.NewV4()
+		if err != nil {
+			c.Fail(500, err)
+		}
+		token := &AuthToken{
+			id:         id.String(),
+			user:       req.Username,
+			expiration: time.Now().Add(tokenExpiration),
+		}
+		tokens.Set(token)
+		cookie := &http.Cookie{
+			Name:     "X-Auth-Token",
+			Value:    token.id,
+			Path:     "/",
+			Expires:  token.expiration,
+			HttpOnly: true,
+		}
+		http.SetCookie(c.Writer, cookie)
+		c.Redirect(303, "/")
+	} else {
+		c.Redirect(303, "/login?retry=1")
+	}
 }

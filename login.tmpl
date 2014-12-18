@@ -1,9 +1,43 @@
 <!DOCTYPE html>
 <html>
-<head>
-	<title>Login</title>
-</head>
-<body>
-	This is a test.
-</body>
+	<head>
+		<title>Login</title>
+	</head>
+	<style>
+	body{
+		font-family: verdana;
+	}
+	body div {
+		margin:auto;
+		width:450px;
+		text-align:center;
+	}
+	body div table {
+		margin:auto;
+	}
+	</style>
+	<link href="/styles/normalize.css" rel="stylesheet">
+	<body>
+		<div>
+			<h1>Welcome to Activebrain</h1>
+			<form method="POST" action="#">
+				<table>
+					<tr>
+						<td>Username:</td>
+						<td><input name="Username" id="Username"/></td>
+					</tr>
+					<tr>
+						<td>Password:</td>
+						<td><input name="Password" id="Password" type="password"/></td>
+					</tr>
+					<tr>
+						<td colspan="2"><input type="submit" value="Enter"/></td>
+					</tr>
+					<tr>
+					<td colspan="2">{{.message}}</td>
+					</tr>
+				</table>
+			</form>
+		</div>
+	</body>
 </html>
