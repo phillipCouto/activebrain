@@ -1,4 +1,4 @@
-package main
+package activebrain
 
 import (
 	"bufio"
@@ -9,11 +9,17 @@ import (
 	"time"
 )
 
+/*
+AuthenticateRequest is the structure used to receive the form data to authenticate a user.
+*/
 type AuthenticateRequest struct {
 	Username string `form:"Username" binding:"required"`
 	Password string `form:"Password" binding:"required"`
 }
 
+/*
+Accounts is the the service used to authenticate login requests.
+*/
 type Accounts struct {
 	accts    map[string]string
 	acctTime time.Time
@@ -21,6 +27,7 @@ type Accounts struct {
 	chanRes  chan bool
 }
 
+//NewAccounts creates a new Accounts object. This is a helper function
 func NewAccounts() *Accounts {
 	return &Accounts{
 		accts:   make(map[string]string),
@@ -29,18 +36,25 @@ func NewAccounts() *Accounts {
 	}
 }
 
+/*
+Challenge sends the credentials to the Accounts service and returns a boolean on the validity
+of the credentials.
+*/
 func (a *Accounts) Challenge(req *AuthenticateRequest) bool {
 	log.Println(req)
 	a.chanReq <- req
 	return <-a.chanRes
 }
 
+/*
+AccountsService is ran in a separate go rountine and handles the processing of challenge requests
+as well as regularly checking the accounts file for new credential pairs.
+*/
 func (a *Accounts) AccountsService() {
 	check := time.After(0)
 	for {
 		select {
-		case <-check:
-
+		case <-check: //Check the accounts file.
 			stat, err := os.Stat("accounts")
 			if err != nil {
 				log.Fatalf("failed to stat accounts file, %v", err)
@@ -56,42 +70,24 @@ func (a *Accounts) AccountsService() {
 				}
 				a.acctTime = lastMod
 			}
-		case req := <-a.chanReq:
+
+		case req := <-a.chanReq: //Process Challenge Request
 			if pass, ok := a.accts[req.Username]; ok && pass == req.Password {
 				a.chanRes <- true
 			} else {
-				log.Println(ok, req)
 				a.chanRes <- false
 			}
 		}
 	}
 }
 
-func authenticated() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		if strings.Contains(c.Request.URL.String(), "/login") {
-			return
-		}
-		var tokenID string
-		if cookie, err := c.Request.Cookie("X-Auth-Token"); err != nil {
-			c.Redirect(303, "/login")
-			c.Abort(303)
-			return
-		} else {
-			tokenID = cookie.Value
-		}
+/*
+parseAccountsFile opens accounts and reads in the credential pairs. The expected format for the file is:
 
-		token, err := tokens.Get(tokenID)
-		if err != nil {
-			c.Redirect(303, "/login")
-			c.Abort(303)
-			return
-		}
+	username:password
 
-		c.Set("token", token)
-	}
-}
-
+Use the checkAccount flag to set how often the accounts file is scanned for changes.
+*/
 func parseAccountsFile() (map[string]string, error) {
 	f, err := os.Open("accounts")
 	if err != nil {
