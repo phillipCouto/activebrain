@@ -1,8 +1,7 @@
-package activebrain
+package main
 
 import (
 	"bufio"
-	"github.com/gin-gonic/gin"
 	"log"
 	"os"
 	"strings"

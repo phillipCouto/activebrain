@@ -2,48 +2,91 @@
 activebrain is the web server used for serving the frontend web application and receiving the
 results from the tests in csv files for later processing.
 */
-package activebrain
+package main
 
 import (
-	"encoding/csv"
+	"encoding/hex"
 	"errors"
 	"flag"
-	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/gin-gonic/gin/binding"
-	"github.com/nu7hatch/gouuid"
-	"net"
+	"log"
 	"net/http"
 	"os"
+	"os/signal"
 	"strconv"
+	"strings"
 	"time"
+
+	"github.com/boltdb/bolt"
+	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 )
 
 var (
 	errInvalidFormat = errors.New("invalid account format")
 	errNoToken       = errors.New("no token found")
 
-	address             string
-	accounts            = NewAccounts()
+	httpAddr            string
+	httpsAddr           string
+	keyPath             string
+	certPath            string
+	dbPath              string
+	outputPath          string
 	accountCheckSeconds time.Duration
-	tokens              = NewAuthTokens()
 	tokenExpiration     time.Duration
+	db                  *bolt.DB
+
+	accounts = NewAccounts()
 )
+
+func init() {
+	flag.StringVar(&httpAddr, "http", "localhost:8080", "defines the IP and port for the web server to bind http to")
+	flag.StringVar(&httpsAddr, "https", "", "defines the IP and Port for the web server to bind https to")
+	flag.StringVar(&keyPath, "key", "", "the path to the private key used for https")
+	flag.StringVar(&certPath, "cert", "", "the path to the public key used for https")
+	flag.StringVar(&dbPath, "dbpath", "activebrains.db", "path to store the embedded database")
+	flag.StringVar(&outputPath, "results", "results", "folder path to create csv files in")
+
+	acs := flag.Int64("checkAccount", 30, "time in seconds to check the accounts file")
+	tExp := flag.Int64("tokenExpiry", 900, "maximum time a token is valid")
+
+	flag.Parse()
+
+	//Create the needed Duration objects from falgs
+	tokenExpiration, _ = time.ParseDuration(strconv.FormatInt(*tExp, 10) + "s")
+	accountCheckSeconds, _ = time.ParseDuration(strconv.FormatInt(*acs, 10) + "s")
+}
 
 func main() {
 
-	flag.StringVar(&address, "address", ":8080", "defines the IP and port for the web server to bind to")
-	acs := flag.Int64("checkAccount", 30, "time in seconds to check the accounts file")
-	tExp := flag.Int64("tokenExpiry", 86400, "maximum time a token is valid")
-	flag.Parse()
+	sig := make(chan os.Signal, 1)
+	signal.Notify(sig, os.Kill, os.Interrupt)
 
-	tokenExpiration, _ = time.ParseDuration(strconv.FormatInt(*tExp, 10) + "s")
-	accountCheckSeconds, _ = time.ParseDuration(strconv.FormatInt(*acs, 10) + "s")
+	//Open the database file to temporarily store results
+	bdb, err := bolt.Open(dbPath, 0600, &bolt.Options{Timeout: 1 * time.Second})
+	if err != nil {
+		log.Fatalln(err)
+	}
+	db = bdb
+	defer db.Close()
 
+	//Make sure buckets exist in the database
+	if err = CheckAuthTokensBucket(); err != nil {
+		log.Fatalln(err)
+	}
+
+	if err = CheckResultsBucket(); err != nil {
+		log.Fatalln(err)
+	}
+
+	//Start up the background services that keep the application in check
 	go accounts.AccountsService()
-	go tokens.TokenService()
+	go ResultsOutputService()
+	go TokenCleanupService()
 
 	fileServer := http.FileServer(http.Dir("web/"))
+	gin.SetMode(gin.ReleaseMode)
+
+	//Setup Gin
 	r := gin.Default()
 	r.Use(authenticated())
 	r.LoadHTMLTemplates("*.tmpl")
@@ -56,7 +99,70 @@ func main() {
 		fileServer.ServeHTTP(c.Writer, c.Request)
 	})
 
-	r.Run(address)
+	//Start up the http and https servers based on the configuration
+	if httpsAddr != "" {
+
+		if keyPath == "" || certPath == "" {
+			log.Println("please provide both key and public certificate paths for https\n")
+			flag.PrintDefaults()
+			return
+		}
+
+		mux := http.NewServeMux()
+		mux.HandleFunc("/", httpRedirect)
+
+		go httpServer(mux)
+		go httpsServer(r)
+
+	} else {
+		go httpServer(r)
+	}
+
+	s := <-sig
+	log.Println("OS Signal ", s)
+}
+
+/*
+httpRedirect is used to bounce http connections to https
+*/
+func httpRedirect(w http.ResponseWriter, req *http.Request) {
+	newUrl := req.URL
+	newUrl.Scheme = "https"
+	w.Header().Set("Location", newUrl.String())
+	w.WriteHeader(http.StatusMovedPermanently)
+}
+
+/*
+httpServer creates and runs the http server
+*/
+func httpServer(handler http.Handler) {
+	s := &http.Server{
+		Addr:           httpAddr,
+		Handler:        handler,
+		ReadTimeout:    10 * time.Second,
+		WriteTimeout:   10 * time.Second,
+		MaxHeaderBytes: 1 << 20,
+	}
+	if err := s.ListenAndServe(); err != nil {
+		log.Fatalln(err)
+	}
+}
+
+/*
+httpsServer creates and runs the https server
+*/
+func httpsServer(handler http.Handler) {
+	s := &http.Server{
+		Addr:           httpsAddr,
+		Handler:        handler,
+		ReadTimeout:    10 * time.Second,
+		WriteTimeout:   10 * time.Second,
+		MaxHeaderBytes: 1 << 20,
+	}
+
+	if err := s.ListenAndServeTLS(certPath, keyPath); err != nil {
+		log.Fatalln(err)
+	}
 }
 
 /*
@@ -71,16 +177,23 @@ func authenticated() gin.HandlerFunc {
 		var tokenID string
 		if cookie, err := c.Request.Cookie("X-Auth-Token"); err != nil {
 			c.Redirect(303, "/login")
-			c.Abort(303)
+			c.Abort()
 			return
 		} else {
 			tokenID = cookie.Value
 		}
 
-		token, err := tokens.Get(tokenID)
+		tid, err := hex.DecodeString(tokenID)
 		if err != nil {
 			c.Redirect(303, "/login")
-			c.Abort(303)
+			c.Abort()
+			return
+		}
+
+		token, err := GetAuthToken(tid)
+		if err != nil {
+			c.Redirect(303, "/login")
+			c.Abort()
 			return
 		}
 
@@ -112,21 +225,18 @@ func postLogin(c *gin.Context) {
 	}
 
 	if accounts.Challenge(&req) {
-		id, err := uuid.NewV4()
+
+		token, err := NewAuthToken(req.Username)
 		if err != nil {
 			c.Fail(500, err)
+			return
 		}
-		token := &AuthToken{
-			id:         id.String(),
-			user:       req.Username,
-			expiration: time.Now().Add(tokenExpiration),
-		}
-		tokens.Set(token)
+
 		cookie := &http.Cookie{
 			Name:     "X-Auth-Token",
-			Value:    token.id,
+			Value:    hex.EncodeToString(token.ID),
 			Path:     "/",
-			Expires:  token.expiration,
+			Expires:  token.Expiration,
 			HttpOnly: true,
 		}
 		http.SetCookie(c.Writer, cookie)
@@ -136,47 +246,17 @@ func postLogin(c *gin.Context) {
 	}
 }
 
-//Trial is the structure of data expected from the frontend application
-type Trial struct {
-	ID      int
-	RT      int
-	Correct bool
-}
-
-//ToCSVStrings is a utility function to create an array of strings for CSV output.
-func (t *Trial) ToCSVStrings() []string {
-	return []string{
-		strconv.FormatInt(int64(t.ID), 10),
-		strconv.FormatInt(int64(t.RT), 10),
-		strconv.FormatBool(t.Correct),
-	}
-}
-
 /*
 postReults handles receiving the Trial results from the frontend and writes the results to
 a .csv file in the results folder.
 */
 func postResults(c *gin.Context) {
-	var results []Trial
+	var results Results
 	c.Bind(&results)
 
 	token := c.MustGet("token").(*AuthToken)
-	host, _, _ := net.SplitHostPort(c.Request.RemoteAddr)
-	filename := fmt.Sprintf("results/%v-%v-%v.csv", token.user, host, time.Now().Format("2006.01.02-15.04.05"))
-	f, err := os.OpenFile(filename, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, os.ModePerm)
-	if err != nil {
-		c.Fail(500, err)
-		return
-	}
-	defer f.Close()
 
-	writer := csv.NewWriter(f)
-
-	for _, result := range results {
-		writer.Write(result.ToCSVStrings())
-	}
-	writer.Flush()
-	if err = writer.Error(); err != nil {
+	if err := AddResults(token, &results); err != nil {
 		c.Fail(500, err)
 		return
 	}
