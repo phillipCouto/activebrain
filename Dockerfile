@@ -1,4 +1,4 @@
-MAINTAINER Phillip Couto <phillip@couto.in>
+MAINTAINER Phillip Couto phillip@couto.in
 
 FROM golang:onbuild
 
