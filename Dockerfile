@@ -1,5 +1,8 @@
-MAINTAINER Phillip Couto phillip@couto.in
-
 FROM golang:onbuild
 
-EXPOSE 80,443
+MAINTAINER Phillip Couto phillip@couto.in
+
+EXPOSE 80
+EXPOSE 443
+
+ENTRYPOINT app
