@@ -40,7 +40,6 @@ Challenge sends the credentials to the Accounts service and returns a boolean on
 of the credentials.
 */
 func (a *Accounts) Challenge(req *AuthenticateRequest) bool {
-	log.Println(req)
 	a.chanReq <- req
 	return <-a.chanRes
 }

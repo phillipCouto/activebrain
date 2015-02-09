@@ -90,7 +90,11 @@ func NewAuthToken(username string) (*AuthToken, error) {
 
 		sessionNum := 0
 		if k, _ := c.Seek(id); k != nil {
+			for nk := k; bytes.HasPrefix(nk, id); nk, _ = c.Next() {
+				k = nk
+			}
 			sessionNum = int(k[len(k)-1])
+			log.Printf("last session id for '%v' was #%v\n", username, sessionNum)
 		}
 		id = append(id, byte(sessionNum+1))
 
@@ -114,6 +118,22 @@ func NewAuthToken(username string) (*AuthToken, error) {
 	}
 	return token, nil
 
+}
+
+/*
+ExpireToken expires the token by setting the expiration to now -1 second
+*/
+func ExpireToken(token *AuthToken) error {
+	return db.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket(TOKEN_BUCKET)
+
+		token.Expiration = time.Now().Add(-1 * time.Second)
+
+		var buf bytes.Buffer
+		gob.NewEncoder(&buf).Encode(token)
+
+		return b.Put(token.ID, buf.Bytes())
+	})
 }
 
 /*

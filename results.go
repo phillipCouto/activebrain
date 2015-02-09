@@ -16,7 +16,8 @@ import (
 )
 
 var (
-	RESULTS_BUCKET = []byte("Results")
+	RESULTS_BUCKET    = []byte("Results")
+	chanForceWriteOut = make(chan bool, 1)
 )
 
 //Results the expected data format from the client
@@ -118,6 +119,7 @@ func ResultsOutputService() {
 		err := db.Update(func(tx *bolt.Tx) error {
 			now := time.Now()
 			c := tx.Bucket(TOKEN_BUCKET).Cursor()
+			rb := tx.Bucket(RESULTS_BUCKET)
 
 			var token AuthToken
 			var results StoredResults
@@ -128,25 +130,25 @@ func ResultsOutputService() {
 
 				if err := dec.Decode(&token); err != nil {
 					log.Printf("delete session %v data, token corrupt", hex.EncodeToString(k))
-					tx.Bucket(RESULTS_BUCKET).Delete(k)
+					rb.Delete(k)
 					c.Delete()
 					continue
 				}
 
 				if token.Expiration.Before(now) {
-					rv := tx.Bucket(RESULTS_BUCKET).Get(k)
+					rv := rb.Get(k)
 					if rv != nil {
 						buf.Reset()
 						buf.Write(rv)
 						if err := dec.Decode(&results); err != nil {
 							log.Printf("delete session %v data, results corrupt, %v", hex.EncodeToString(k), err)
-							tx.Bucket(RESULTS_BUCKET).Delete(k)
+							rb.Delete(k)
 						} else {
 							if err := WriteOutResults(&token, &results); err != nil {
 								log.Printf("failed to write csv for %v, %v", hex.EncodeToString(k), err)
 								continue
 							}
-							tx.Bucket(RESULTS_BUCKET).Delete(k)
+							rb.Delete(k)
 						}
 					}
 				}
@@ -156,7 +158,12 @@ func ResultsOutputService() {
 		if err != nil {
 			log.Println(err)
 		}
-		<-time.After(tokenExpiration)
+
+		//Wait for either a force writeout from a logout or regular interval
+		select {
+		case <-time.After(tokenExpiration):
+		case <-chanForceWriteOut:
+		}
 	}
 }
 
@@ -173,7 +180,7 @@ func WriteOutResults(token *AuthToken, results *StoredResults) error {
 
 	sort.Strings(columns)
 
-	fileName = fmt.Sprintf("%04d%02d%02d-%v-%02d.csv", int16(token.ID[0])<<8|int16(token.ID[1]), int8(token.ID[2]), int8(token.ID[3]), token.User, int8(token.ID[len(token.ID)-1]))
+	fileName = fmt.Sprintf("%v-%v-%02d.csv", token.Expiration.Format("20060102T150405"), token.User, int8(token.ID[len(token.ID)-1]))
 
 	f, err := os.OpenFile(filepath.Join(outputPath, fileName), os.O_WRONLY|os.O_TRUNC|os.O_CREATE, os.ModePerm)
 	if err != nil {

@@ -96,6 +96,7 @@ func main() {
 	r.POST("/results", postResults)
 	r.GET("/login", getLogin)
 	r.POST("/login", postLogin)
+	r.GET("/logout", getLogout)
 
 	r.NoRoute(func(c *gin.Context) {
 		fileServer.ServeHTTP(c.Writer, c.Request)
@@ -214,6 +215,24 @@ func getLogin(c *gin.Context) {
 	} else {
 		c.HTML(200, "login.tmpl", gin.H{})
 	}
+}
+
+/*
+getLogout handles a logout request that forcefully expires the token and writes out
+pending results
+*/
+func getLogout(c *gin.Context) {
+	token := c.MustGet("token").(*AuthToken)
+
+	if err := ExpireToken(token); err != nil {
+		c.Fail(500, err)
+		return
+	}
+	select {
+	case chanForceWriteOut <- true:
+	default:
+	}
+	c.Redirect(303, "/login")
 }
 
 /*
