@@ -54,7 +54,7 @@ func (a *Accounts) AccountsService() {
 	for {
 		select {
 		case <-check: //Check the accounts file.
-			stat, err := os.Stat("accounts")
+			stat, err := os.Stat(accountPath)
 			if err != nil {
 				log.Fatalf("failed to stat accounts file, %v", err)
 			}
@@ -88,7 +88,7 @@ parseAccountsFile opens accounts and reads in the credential pairs. The expected
 Use the checkAccount flag to set how often the accounts file is scanned for changes.
 */
 func parseAccountsFile() (map[string]string, error) {
-	f, err := os.Open("accounts")
+	f, err := os.Open(accountPath)
 	if err != nil {
 		return nil, err
 	}

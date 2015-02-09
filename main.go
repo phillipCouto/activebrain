@@ -25,6 +25,7 @@ var (
 	errInvalidFormat = errors.New("invalid account format")
 	errNoToken       = errors.New("no token found")
 
+	accountPath         string
 	httpAddr            string
 	httpsAddr           string
 	keyPath             string
@@ -45,6 +46,7 @@ func init() {
 	flag.StringVar(&certPath, "cert", "", "the path to the public key used for https")
 	flag.StringVar(&dbPath, "dbpath", "activebrains.db", "path to store the embedded database")
 	flag.StringVar(&outputPath, "results", "results", "folder path to create csv files in")
+	flag.StringVar(&accountPath, "accounts", "accounts", "path to the accounts file")
 
 	acs := flag.Int64("checkAccount", 30, "time in seconds to check the accounts file")
 	tExp := flag.Int64("tokenExpiry", 900, "maximum time a token is valid")
