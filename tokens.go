@@ -24,7 +24,7 @@ type AuthToken struct {
 	Expiration time.Time
 }
 
-//CHeckAuthTokensBucket makes sure the bucket exists in the db
+//CheckAuthTokensBucket makes sure the bucket exists in the db
 func CheckAuthTokensBucket() error {
 
 	return db.Update(func(tx *bolt.Tx) error {
@@ -155,12 +155,11 @@ func TokenCleanupService() {
 
 				if err := dec.Decode(&token); err != nil {
 					log.Printf("delete session %v data, token corrupt\n", hex.EncodeToString(k))
-					tx.Bucket(RESULTS_BUCKET).Delete(k)
 					c.Delete()
 					continue
 				}
 
-				if now.Sub(token.Expiration).Hours() > 24 && tx.Bucket(RESULTS_BUCKET).Get(k) == nil {
+				if now.Sub(token.Expiration).Hours() > 24 {
 					log.Printf("removing expired session %v\n", hex.EncodeToString(token.ID))
 					c.Delete()
 				} else {

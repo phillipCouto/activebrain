@@ -58,7 +58,7 @@ func (a *Accounts) AccountsService() {
 				log.Fatalf("failed to stat accounts file, %v", err)
 			}
 
-			check = time.After(accountCheckSeconds)
+			check = time.After(accountCheck)
 			lastMod := stat.ModTime()
 
 			if a.acctTime.IsZero() || lastMod.After(a.acctTime) {

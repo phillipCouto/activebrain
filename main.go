@@ -25,16 +25,16 @@ var (
 	errInvalidFormat = errors.New("invalid account format")
 	errNoToken       = errors.New("no token found")
 
-	accountPath         string
-	httpAddr            string
-	httpsAddr           string
-	keyPath             string
-	certPath            string
-	dbPath              string
-	outputPath          string
-	accountCheckSeconds time.Duration
-	tokenExpiration     time.Duration
-	db                  *bolt.DB
+	accountPath     string
+	httpAddr        string
+	httpsAddr       string
+	keyPath         string
+	certPath        string
+	dbPath          string
+	outputPath      string
+	accountCheck    time.Duration
+	tokenExpiration time.Duration
+	db              *bolt.DB
 
 	accounts = NewAccounts()
 )
@@ -44,7 +44,7 @@ func init() {
 	flag.StringVar(&httpsAddr, "https", "", "defines the IP and Port for the web server to bind https to")
 	flag.StringVar(&keyPath, "key", "", "the path to the private key used for https")
 	flag.StringVar(&certPath, "cert", "", "the path to the public key used for https")
-	flag.StringVar(&dbPath, "dbpath", "activebrains.db", "path to store the embedded database")
+	flag.StringVar(&dbPath, "dbpath", "activebrain.db", "path to store the embedded database")
 	flag.StringVar(&outputPath, "results", "results", "folder path to create csv files in")
 	flag.StringVar(&accountPath, "accounts", "accounts", "path to the accounts file")
 
@@ -55,7 +55,7 @@ func init() {
 
 	//Create the needed Duration objects from falgs
 	tokenExpiration, _ = time.ParseDuration(strconv.FormatInt(*tExp, 10) + "s")
-	accountCheckSeconds, _ = time.ParseDuration(strconv.FormatInt(*acs, 10) + "s")
+	accountCheck, _ = time.ParseDuration(strconv.FormatInt(*acs, 10) + "s")
 }
 
 func main() {
@@ -76,13 +76,8 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	if err = CheckResultsBucket(); err != nil {
-		log.Fatalln(err)
-	}
-
 	//Start up the background services that keep the application in check
 	go accounts.AccountsService()
-	go ResultsOutputService()
 	go TokenCleanupService()
 
 	fileServer := http.FileServer(http.Dir("web/"))
@@ -97,6 +92,8 @@ func main() {
 	r.GET("/login", getLogin)
 	r.POST("/login", postLogin)
 	r.GET("/logout", getLogout)
+	r.GET("/session", getSession)
+	r.GET("/subject", getSubject)
 
 	r.NoRoute(func(c *gin.Context) {
 		fileServer.ServeHTTP(c.Writer, c.Request)
@@ -106,7 +103,7 @@ func main() {
 	if httpsAddr != "" {
 
 		if keyPath == "" || certPath == "" {
-			log.Println("please provide both key and public certificate paths for https\n")
+			log.Println("please provide both key and public certificate paths for https")
 			flag.PrintDefaults()
 			return
 		}
@@ -129,9 +126,9 @@ func main() {
 httpRedirect is used to bounce http connections to https
 */
 func httpRedirect(w http.ResponseWriter, req *http.Request) {
-	newUrl := req.URL
-	newUrl.Scheme = "https"
-	w.Header().Set("Location", newUrl.String())
+	newURL := req.URL
+	newURL.Scheme = "https"
+	w.Header().Set("Location", newURL.String())
 	w.WriteHeader(http.StatusMovedPermanently)
 }
 
@@ -178,13 +175,13 @@ func authenticated() gin.HandlerFunc {
 			return
 		}
 		var tokenID string
-		if cookie, err := c.Request.Cookie("X-Auth-Token"); err != nil {
+		cookie, err := c.Request.Cookie("X-Auth-Token")
+		if err != nil {
 			c.Redirect(303, "/login")
 			c.Abort()
 			return
-		} else {
-			tokenID = cookie.Value
 		}
+		tokenID = cookie.Value
 
 		tid, err := hex.DecodeString(tokenID)
 		if err != nil {
@@ -227,10 +224,6 @@ func getLogout(c *gin.Context) {
 	if err := ExpireToken(token); err != nil {
 		c.Fail(500, err)
 		return
-	}
-	select {
-	case chanForceWriteOut <- true:
-	default:
 	}
 	c.Redirect(303, "/login")
 }
@@ -276,9 +269,32 @@ func postResults(c *gin.Context) {
 	c.Bind(&results)
 
 	token := c.MustGet("token").(*AuthToken)
+	sr := NewStoredResults(&results)
 
-	if err := AddResults(token, &results); err != nil {
+	if err := sr.writeToDisk(token); err != nil {
 		c.Fail(500, err)
 		return
 	}
+}
+
+/*
+getSession returns the session information
+*/
+func getSession(c *gin.Context) {
+	token := c.MustGet("token").(*AuthToken)
+	props := make(map[string]interface{})
+	props["ID"] = int8(token.ID[len(token.ID)-1])
+	props["UniqueID"] = hex.EncodeToString(token.ID)
+	props["Expiration"] = token.Expiration
+	c.JSON(200, props)
+}
+
+/*
+getSubject returns the user/subject information
+*/
+func getSubject(c *gin.Context) {
+	token := c.MustGet("token").(*AuthToken)
+	props := make(map[string]interface{})
+	props["ID"] = token.User
+	c.JSON(200, props)
 }
