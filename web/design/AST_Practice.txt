@@ -1,0 +1,11 @@
+Operation,Size,List,ProblemID,LargerOP,Problem,Answer
+Subtraction,Lg,1,1,1,6-3=?,3
+Subtraction,Lg,1,2,2,8-4=?,4
+Subtraction,Lg,1,3,1,4-2=?,2
+Subtraction,Lg,1,4,1,9-0=?,9
+Subtraction,Lg,1,5,2,6-0=?,6
+Multiplication,Lg,1,6,1,2x2=?,4
+Multiplication,Lg,1,1,1,6x6=?,36
+Multiplication,Lg,1,2,2,8x8=?,64
+Multiplication,Lg,1,3,1,4x0=?,0
+Multiplication,Lg,1,4,1,7x0=?,0

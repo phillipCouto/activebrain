@@ -1,0 +1,19 @@
+Condition,List,ProblemStim,AnswerStim1,AnswerStim2,AnswerStim3,CorrectAnswer,solution,TrialNum
+Recognition,1,house/thumb/pepper,permit,green,tired,2,green,19
+Recognition,1,knife/light/pal,bump,pen,bell,2,pen,20
+Recognition,1,blank/list/mate,control,shop,check,3,check,21
+Recognition,1,rain/test/stomach,tow,mysterious,acid,3,acid,22
+Recognition,1,cat/number/phone,messy,call,record,2,call,23
+Recognition,1,fence/card/master,arrive,bathe,post,3,post,24
+Recognition,1,tooth/potato/heart,sweet,cup,kiss,1,sweet,25
+Recognition,1,teeth/arrest/start,periodic,false,advise,2,false,26
+Recognition,1,off/military/first,base,gust,rate,1,base,27
+Recognition,1,shock/shave/taste,trouble,decide,after,3,after,28
+Recognition,1,break/bean/cake,tempt,coffee,join,2,coffee,29
+Recognition,1,horse/human/drag,race,thin,troubled,1,race,30
+Recognition,1,pea/shell/chest,sky,nut,yummy,2,nut,31
+Recognition,1,home/arm/room,rest,fright,agreement,1,rest,32
+Recognition,1,control/place/rate,tell,oatmeal,birth,3,birth,33
+Recognition,1,mate/shoes/total,running,full,jump,1,running,34
+Recognition,1,hungry/order/belt,money,labor,tart,1,money,35
+Recognition,1,cast/side/jump,crook, person,broad,3,broad,36

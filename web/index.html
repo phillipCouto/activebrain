@@ -1,10 +1,24 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Test Page</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>
+        Active Brain
+    </title>
+    <script type="text/javascript" src="../build/psycloud_libs.js"></script>
+    <script type="text/javascript" src="../build/psycloud.js"></script>
+    <link href="../build/psycloud_bundle.css" rel="stylesheet" media="screen">
 </head>
-<body>
-	<h1>Demos:</h1>
-	<a href="examples/color_flanker/index.html">Color Flanker</a>
+<body style="background-color: white">
+    <div id="container"></div>
+    <script type="text/javascript" src="./arithmetic_span/runner.js"></script>
+    <script type="text/javascript" src="./arrow_flanker/runner.js"></script>
+    <script type="text/javascript" src="./remote_associates/runner.js"></script>
+    <script type="text/javascript" src="./trailsB/runner.js"></script>
+
+    <script type="text/javascript" src="./activeb_master.js"></script>
+    <script type="application/javascript">
+        Active_Brain.start();
+    </script>
 </body>
 </html>
