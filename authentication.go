@@ -99,9 +99,14 @@ func parseAccountsFile() (map[string]string, error) {
 	scanner := bufio.NewScanner(f)
 
 	for scanner.Scan() {
-		parts := strings.Split(scanner.Text(), ":")
+		txt := scanner.Text()
+		if txt == "" {
+			continue
+		}
+		parts := strings.Split(txt, ":")
 		if len(parts) != 2 {
-			return nil, errInvalidFormat
+			log.Println("ignored line \"", txt, "\" as it does not follow the correct schema")
+			continue
 		}
 		accts[parts[0]] = parts[1]
 	}
