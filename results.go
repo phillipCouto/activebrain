@@ -10,32 +10,29 @@ import (
 )
 
 //Results the expected data format from the client
-type Results struct {
-	Header map[string]interface{}
-	Data   []map[string]interface{}
-}
+type Results []map[string]interface{}
 
 //StoredResults is the data structure persisted in the database
 type StoredResults struct {
 	Task    string
 	Columns map[string]struct{}
-	Results []map[string]interface{}
+	Results Results
 }
 
 //NewStoredResults creates a new StoredResult from a Results object
-func NewStoredResults(res *Results) StoredResults {
+func NewStoredResults(res Results) StoredResults {
 	r := StoredResults{
 		Columns: make(map[string]struct{}),
-		Results: res.Data,
+		Results: res,
 	}
 
-	r.Task = res.Header["task"].(string)
-
-	for _, v := range res.Data {
+	for _, v := range res {
 		//Scan columns to add any missing
 		for k := range v {
-			if _, exists := r.Columns[k]; !exists {
+			if _, exists := r.Columns[k]; !exists && k != "Task" && k != "task" {
 				r.Columns[k] = struct{}{}
+			} else if r.Task == "" && (k == "Task" || k == "task") {
+				r.Task = v[k].(string)
 			}
 		}
 	}

@@ -49,7 +49,7 @@ func init() {
 	flag.StringVar(&accountPath, "accounts", "accounts", "path to the accounts file")
 
 	acs := flag.Int64("checkAccount", 30, "time in seconds to check the accounts file")
-	tExp := flag.Int64("tokenExpiry", 900, "maximum time a token is valid")
+	tExp := flag.Int64("tokenExpiry", 1800, "maximum time a token is valid")
 
 	flag.Parse()
 
@@ -269,7 +269,7 @@ func postResults(c *gin.Context) {
 	c.Bind(&results)
 
 	token := c.MustGet("token").(*AuthToken)
-	sr := NewStoredResults(&results)
+	sr := NewStoredResults(results)
 
 	if err := sr.writeToDisk(token); err != nil {
 		c.Fail(500, err)
