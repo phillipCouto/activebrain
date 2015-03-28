@@ -265,10 +265,14 @@ postReults handles receiving the Trial results from the frontend and writes the 
 a .csv file in the results folder.
 */
 func postResults(c *gin.Context) {
+	token := c.MustGet("token").(*AuthToken)
+	if token.User == "activebrain" {
+		return
+	}
+
 	var results Results
 	c.Bind(&results)
 
-	token := c.MustGet("token").(*AuthToken)
 	sr := NewStoredResults(results)
 
 	if err := sr.writeToDisk(token); err != nil {
