@@ -279,6 +279,18 @@ func postResults(c *gin.Context) {
 		c.Fail(500, err)
 		return
 	}
+
+	if err := IncrementTasks(token); err != nil {
+		c.Fail(500, err)
+		return
+	}
+	//Expire the token once 4 tasks have been executed.
+	if token.Tasks >= 4 {
+		if err := ExpireToken(token); err != nil {
+			c.Fail(500, err)
+			return
+		}
+	}
 }
 
 /*

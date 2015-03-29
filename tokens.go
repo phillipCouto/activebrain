@@ -22,6 +22,7 @@ type AuthToken struct {
 	ID         Token
 	User       string
 	Expiration time.Time
+	Tasks      int
 }
 
 //CheckAuthTokensBucket makes sure the bucket exists in the db
@@ -117,7 +118,24 @@ func NewAuthToken(username string) (*AuthToken, error) {
 		return nil, err
 	}
 	return token, nil
+}
 
+func IncrementTasks(token *AuthToken) error {
+	return db.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket(TOKEN_BUCKET)
+
+		token.Tasks++
+
+		var buf bytes.Buffer
+		enc := gob.NewEncoder(&buf)
+		if err := enc.Encode(token); err != nil {
+			return err
+		}
+		if err := b.Put(token.ID, buf.Bytes()); err != nil {
+			return err
+		}
+		return nil
+	})
 }
 
 /*
