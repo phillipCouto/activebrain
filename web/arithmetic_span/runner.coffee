@@ -11,13 +11,10 @@ instructions = """
           Problems will appear on the screen. Solve the problem, and type the answer using the keyboard.
           Then press enter to proceed to the next question.
 
-          Answer these problems as **quickly as possible** while getting most correct.
+          Answer as **quickly as possible**.
 
-          A few errors are expected given the speed required.
 
-          If you notice you made an error while you are typing, don’t try to correct it, finish typing your answer and move on.
-
-          Problems will appear in 4 blocks of 28, 2 of subtraction and 2 of multiplication.
+          Problems will appear in 2 blocks of 28. 1 of subtraction and 1 of multiplication.
 
           There will be a short practice set so you can get used to answering.
 
@@ -48,7 +45,7 @@ instructions = """
       @context.set("task", "practice")
 
       Text:
-        content: ["You will now receive 10 practice problems.", "Press any key to continue."]
+        content: ["You will now receive 6 practice problems.", "Press any key to continue."]
         origin: "center"
         position: "center"
       Next:
@@ -65,6 +62,8 @@ instructions = """
 
                 Remember to answer as quickly as you possibly can while getting most correct.
 
+                Type your answer and press ENTER to advance to the next problem.
+
                 There will be no feedback on your performance during the test.
 
                 When you are ready, press any key. """
@@ -73,6 +72,19 @@ instructions = """
 
 
     Block:
+      StartMult: ->
+        Events:
+          1:
+            Action:
+              execute: (context) ->
+                context.set("task", "real")
+          2:
+            Text:
+              position: "center"
+              origin: "center"
+              content: ["Get Ready for Multiplication Problems!", "Press any key to start"]
+            Next:
+              AnyKey: ""
       Start: ->
         Events:
           1:
@@ -83,7 +95,7 @@ instructions = """
             Text:
               position: "center"
               origin: "center"
-              content: ["Get Ready!", "Press any key to start"]
+              content: ["Get Ready for Subtraction Problems!", "Press any key to start"]
             Next:
               AnyKey: ""
 
@@ -214,40 +226,55 @@ instructions = """
       start: routines.Block.Start
       trial: routines.Trial
       end: routines.Block.End
-    4: routines.Coda
-    5: routines.Save
+    4: BlockSequence:
+      name: "main"
+      trialList: @AST.trialsPart2
+      start: routines.Block.StartMult
+      trial: routines.Trial
+      end: routines.Block.End
+    5: routines.Coda
+    6: routines.Save
 
-context = new Psy.createContext()
+
 
 @AST.start = (sessionNumber, subjectNumber) =>
-  @context = context
+  context = new Psy.createContext()
+
   if subjectNumber?
-    #@context.set("active_brain", true)
-    @context.set("subjectNumber", subjectNumber)
+    context.set("active_brain", true)
+    context.set("subjectNumber", subjectNumber)
   else
-    sessionNumber = 1
+    subjectNumber = 1
+    context.set("subjectNumber", subjectNumber)
 
   if sessionNumber?
-    @context.set("sessionNumber", subjectNumber)
+    context.set("sessionNumber", sessionNumber)
 
-  console.log("session Number", @context.get("sessionNumber"))
-  console.log("active_brain", @context.get("active_brain"))
+  console.log("session Number", context.get("sessionNumber"))
+  console.log("subject Number", context.get("subjectNumber"))
+  console.log("active_brain", context.get("active_brain"))
 
   console.log("loading practice")
 
-  @design_prac = Psy.loadTable("design/AST_Practice.txt", separator=",")
-  @design_sub = Psy.loadTable("design/AST_SubList" + sessionNumber + ".txt", separator=",")
-  @design_mul = Psy.loadTable("design/AST_MulList" + sessionNumber + ".txt", separator=",")
+  design_prac = Psy.loadTable("design/AST_Practice.txt", separator=",")
+  console.log("prac:", design_prac)
 
-  design_sub = @design_sub.shuffle()
-  design_mul = @design_mul.shuffle()
-  design_both = Psy.DataTable.rbind2(design_sub, design_mul)
+  design_sub = Psy.loadTable("design/AST_SubList" + sessionNumber + ".txt", separator=",")
+  design_mul = Psy.loadTable("design/AST_MulList" + sessionNumber + ".txt", separator=",")
 
-  @AST.trialsPart1 = Psy.TrialList.fromBlock(design_both)
+
+  design_sub = design_sub.shuffle()
+  design_mul = design_mul.shuffle()
+
+  #design_both = Psy.DataTable.rbind2(design_sub, design_mul)
+
+  @AST.trialsPart1 = Psy.TrialList.fromBlock(design_sub)
+  @AST.trialsPart2 = Psy.TrialList.fromBlock(design_mul)
+
   @AST.trialsPractice = Psy.TrialList.fromBlock(design_prac)
 
 
-  @pres = new Psy.Presentation({}, @AST.experiment, @context)
+  @pres = new Psy.Presentation({}, @AST.experiment, context)
   @pres.start()
 
 

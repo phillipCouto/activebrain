@@ -17,9 +17,7 @@ instructions = """
 
           Your goal is to make a trail linking all the numbered circles and lettered circles alternating in order between numbers and letters.
 
-          Thus, you will first look for the circle with "1" inside, click it, and then find "A" and click that.
-
-          Next you will click 2 and then "B", and so on until you have connected all the circles.
+          For example: 1 -> A -> 2 -> B -> 3 -> C
 
           To make a path between two circles, simply click the next circle in the path.
 
@@ -78,7 +76,7 @@ instructions = """
                   RT: ev.RT
                   timeElapsed: ev.timeElapsed
                   index: ev.index
-                  task: "TrailsB"
+                  Task: "TrailsB"
                   trialNumber: context.get("State.trialNumber")
                   blockNumber: context.get("State.blockNumber")
                   node: ev.node_id
@@ -136,7 +134,7 @@ instructions = """
 
 
 factorSet =
-  trial: [1,2,3,4,5]
+  trial: [1,2]
   #trial: [1,2]
 
 fnode = Psy.FactorSetNode.build(factorSet)

@@ -20231,7 +20231,11 @@ require.define('135', function(module, exports, __dirname, __filename, undefined
         Question.prototype.onload = function (context) {
             Question.__super__.onload.call(this, context);
             if (this.spec.focus) {
-                return null;
+                return setTimeout(function (_this) {
+                    return function () {
+                        return _this.question.input.focus();
+                    };
+                }(this), 100);
             }
         };
         return Question;

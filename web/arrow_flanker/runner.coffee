@@ -38,24 +38,25 @@ _ = Psy._
         1:
           Markdown: """
 
-          Flnaker Task
+          Flanker Task
           ==========================
 
           On every trial a central arrow will appear surrounded by arrows on either side.
-          Your goal is to focus on the central arrow and decide whether it points left or right.
+          Your goal is to **focus on the central arrow** and decide whether it points left or right.
 
-            * If the central arrow points <-- left, press the 'g' key.
+            * If the central arrow points <-- left, press the **'g'** key.
 
-            * If the central arrow points --> right, press the 'h' key.
+            * If the central arrow points --> right, press the **'h'** key.
 
             * If your response is correct, the screen will briefly turn green.
 
             * If your response is incorrect, the screen will briefly turn red.
 
-            * make your decision as fast as you can.
 
-          Press any key to continue
-          -------------------------
+          Answer as quickly and accurately as possible.
+
+          **Press any key to continue**
+
 
           """
           Next:
@@ -150,7 +151,7 @@ _ = Psy._
                 NonResponse: obj.nonResponse
                 Correct: obj.accuracy
                 CenterArrow: obj.trial.centerArrow
-                Flnaker: obj.trial.flanker
+                Flanker: obj.trial.flanker
                 FlankerArrow: obj.trial.flankerArrow
                 Task: "Flanker"
 
@@ -159,11 +160,11 @@ _ = Psy._
           Text:
             position: "center"
             origin: "center"
-            content: "End of Flanker Task"
-            fontSize: 200
+            content: ["End of Flanker Task", "Press Any Key to Continue"]
+            fontSize: 28
 
           Next:
-            Timeout: duration: 3000
+            AnyKey: {}
 
     Save: ->
       Action:
@@ -201,9 +202,8 @@ factorSet =
 
 fnode = Psy.FactorSetNode.build(factorSet)
 
-# create 5 blocks of trials with 5 complete replications per block
-trials = fnode.trialList(5, 5)
-trials = fnode.trialList(2, 2)
+# create 4 blocks of trials with 4 complete replications per block
+trials = fnode.trialList(4, 4)
 
 
 trials = trials.bind (record) ->
