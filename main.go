@@ -5,18 +5,18 @@ results from the tests in csv files for later processing.
 package main
 
 import (
-	"encoding/hex"
 	"errors"
 	"flag"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"os/signal"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/boltdb/bolt"
+	"github.com/fzzy/radix/extra/pool"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 )
@@ -30,11 +30,11 @@ var (
 	httpsAddr       string
 	keyPath         string
 	certPath        string
-	dbPath          string
 	outputPath      string
 	accountCheck    time.Duration
 	tokenExpiration time.Duration
-	db              *bolt.DB
+	rpool           *pool.Pool
+	sessCountMonths = 1
 
 	accounts = NewAccounts()
 )
@@ -44,7 +44,6 @@ func init() {
 	flag.StringVar(&httpsAddr, "https", "", "defines the IP and Port for the web server to bind https to")
 	flag.StringVar(&keyPath, "key", "", "the path to the private key used for https")
 	flag.StringVar(&certPath, "cert", "", "the path to the public key used for https")
-	flag.StringVar(&dbPath, "dbpath", "activebrain.db", "path to store the embedded database")
 	flag.StringVar(&outputPath, "results", "results", "folder path to create csv files in")
 	flag.StringVar(&accountPath, "accounts", "accounts", "path to the accounts file")
 
@@ -63,22 +62,17 @@ func main() {
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, os.Kill, os.Interrupt)
 
-	//Open the database file to temporarily store results
-	bdb, err := bolt.Open(dbPath, 0600, &bolt.Options{Timeout: 1 * time.Second})
+	purl, err := url.Parse(os.Getenv("REDIS_PORT"))
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatalf("REDIS_PORT wasn't a valid url to the redis instance, %v '%v'", err, os.Getenv("REDIS_PORT"))
 	}
-	db = bdb
-	defer db.Close()
-
-	//Make sure buckets exist in the database
-	if err = CheckAuthTokensBucket(); err != nil {
-		log.Fatalln(err)
+	rpool, err = pool.NewPool(purl.Scheme, purl.Host, 5)
+	if err != nil {
+		log.Fatalf("failed to connect to redis, %v", err)
 	}
 
 	//Start up the background services that keep the application in check
 	go accounts.AccountsService()
-	go TokenCleanupService()
 
 	fileServer := http.FileServer(http.Dir("web/"))
 	gin.SetMode(gin.ReleaseMode)
@@ -119,6 +113,7 @@ func main() {
 	}
 
 	s := <-sig
+	rpool.Empty()
 	log.Println("OS Signal ", s)
 }
 
@@ -174,21 +169,13 @@ func authenticated() gin.HandlerFunc {
 		if strings.Contains(c.Request.URL.String(), "/login") {
 			return
 		}
-		var tokenID string
 		cookie, err := c.Request.Cookie("X-Auth-Token")
 		if err != nil {
 			c.Redirect(303, "/login")
 			c.Abort()
 			return
 		}
-		tokenID = cookie.Value
-
-		tid, err := hex.DecodeString(tokenID)
-		if err != nil {
-			c.Redirect(303, "/login")
-			c.Abort()
-			return
-		}
+		tid := cookie.Value
 
 		token, err := GetAuthToken(tid)
 		if err != nil {
@@ -248,7 +235,7 @@ func postLogin(c *gin.Context) {
 
 		cookie := &http.Cookie{
 			Name:     "X-Auth-Token",
-			Value:    hex.EncodeToString(token.ID),
+			Value:    token.ID,
 			Path:     "/",
 			Expires:  token.Expiration,
 			HttpOnly: true,
@@ -299,8 +286,8 @@ getSession returns the session information
 func getSession(c *gin.Context) {
 	token := c.MustGet("token").(*AuthToken)
 	props := make(map[string]interface{})
-	props["ID"] = int8(token.ID[len(token.ID)-1])
-	props["UniqueID"] = hex.EncodeToString(token.ID)
+	props["ID"] = token.Num
+	props["UniqueID"] = token.ID
 	props["Expiration"] = token.Expiration
 	c.JSON(200, props)
 }

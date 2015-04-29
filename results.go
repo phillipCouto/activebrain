@@ -49,7 +49,7 @@ func (r *StoredResults) writeToDisk(token *AuthToken) error {
 
 	sort.Strings(columns)
 
-	fileName = fmt.Sprintf("%v-%v-%02d-%v.csv", token.Expiration.Format("20060102T150405"), token.User, int8(token.ID[len(token.ID)-1]), r.Task)
+	fileName = fmt.Sprintf("%v-%v-%02d-%v.csv", token.Expiration.Format("20060102T150405"), token.User, token.Num, r.Task)
 
 	f, err := os.OpenFile(filepath.Join(outputPath, fileName), os.O_WRONLY|os.O_TRUNC|os.O_CREATE, os.ModePerm)
 	if err != nil {
