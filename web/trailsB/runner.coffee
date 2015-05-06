@@ -5,15 +5,50 @@ _ = Psy._
 ## this is a task with a simple design: just one factor consisting of three trials.
 
 
+instructionsA = """
+          <p>
+          <p>
 
-instructions = """
+          **STOP!!**
 
-          Trail Making Task
+          **READ** the following Instructions **CAREFULLY**
+
+          Trail Making Task, Part 1
+          ==========================
+          In this task you will make a "trail" connecting circles in a particular order.
+
+          You will see a number circles appear on the screen. Each circle will have a number (1,2,3 ...) inside.
+
+          Your goal is to make a trail linking all the numbered circles in order.
+
+          You will first look for the circle with "1" inside, click it, and then find "2" and click that, and so on.
+
+          To make a path between two circles, simply click the next circle in the path.
+
+          When you select the correct circle, it will turn yellow. When you complete the trail, the final circle will turn red.
+
+          Press any key to continue
+          -------------------------
+
+          """
+
+
+instructionsB = """
+
+          <p>
+          <p>
+
+          **STOP!!**
+
+          **READ** the following Instructions **CAREFULLY**
+
+          Trail Making Task, Part 2
           ==========================
 
           In this task you will make a "trail" connecting circles in a particular order.
 
           You will see a number circles appear on the screen. Each circle will have a number (1,2,3 ...) or a letter inside.
+
 
           Your goal is to make a trail linking all the numbered circles and lettered circles alternating in order between numbers and letters.
 
@@ -33,13 +68,21 @@ instructions = """
 @TrailsB.experiment =
   Define:
     active_brain: true
+    trail_type: "A"
     resultObject: []
 
   Routines:
-    Prelude:
+    Prelude_A:
       Events:
         1:
-          Markdown: instructions
+          Markdown: instructionsA
+          Next:
+            AnyKey: ""
+
+    Prelude_B:
+      Events:
+        1:
+          Markdown: instructionsB
           Next:
             AnyKey: ""
 
@@ -52,8 +95,68 @@ instructions = """
         Next:
           AnyKey: ""
 
-    Trial: ->
+
+
+    TrialA: ->
       context = @context
+
+      trail_move = (ev) ->
+        resp =
+          RT: ev.RT
+          timeElapsed: ev.timeElapsed
+          index: ev.index
+          Task: "TrailsB"
+          trialNumber: context.get("State.trialNumber")
+          blockNumber: context.get("State.blockNumber")
+          node: ev.node_id
+        resultObj = context.get("resultObject")
+        resultObj.push(resp)
+        console.log(resultObj)
+
+      Background:
+        Blank:
+          fill: "gray"
+        CanvasBorder:
+          stroke: "black"
+
+      Events:
+        1:
+          FixationCross:
+            length: 100
+          Timeout:
+            duration: 500
+        2:
+          TrailsA:
+            id: "trails_a"
+            npoints: 24
+            react: trail_move
+          Next:
+            Receiver:
+              signal: "trail_completed"
+      Feedback: ->
+        Text:
+          content: "Nice Job! Press Any Key to Continue."
+          position: "center"
+          origin: "center"
+        Next:
+          AnyKey: ""
+
+    TrialB: ->
+      context = @context
+
+      trail_move = (ev) ->
+        resp =
+          RT: ev.RT
+          timeElapsed: ev.timeElapsed
+          index: ev.index
+          Task: "TrailsB"
+          trialNumber: context.get("State.trialNumber")
+          blockNumber: context.get("State.blockNumber")
+          node: ev.node_id
+        resultObj = context.get("resultObject")
+        resultObj.push(resp)
+        console.log(resultObj)
+
       Background:
         Blank:
           fill: "gray"
@@ -70,23 +173,8 @@ instructions = """
           TrailsB:
             id: "trails_b"
             npoints: 24
-            react:
-              trail_move: (ev) ->
-                resp =
-                  RT: ev.RT
-                  timeElapsed: ev.timeElapsed
-                  index: ev.index
-                  Task: "TrailsB"
-                  trialNumber: context.get("State.trialNumber")
-                  blockNumber: context.get("State.blockNumber")
-                  node: ev.node_id
-                resultObj = context.get("resultObject")
-                resultObj.push(resp)
-                console.log(resultObj)
+            react: trail_move
           Next:
-            ## components can emit "signals" that have an id.
-            ## when the user connects the last circle, TrailsA emits "trail_completed"
-            ## end trial when we "receive" a signal called "trail_completed"
             Receiver:
               signal: "trail_completed"
       Feedback: ->
@@ -96,6 +184,15 @@ instructions = """
           origin: "center"
         Next:
           AnyKey: ""
+
+    EndOfA:
+      Events:
+        1:
+          Action:
+            execute: (context) ->
+              console.log("setting trial type to B!!!")
+              context.set("trail_type", "B")
+              console.log(context.get("trail_type"))
 
     Coda:
       Events:
@@ -123,13 +220,19 @@ instructions = """
             })
 
   Flow: (routines) ->
-    1: routines.Prelude
+    1: routines.Prelude_A
     2: BlockSequence:
       trialList: trials
       start: routines.Block.Start
-      trial: routines.Trial
-    3: routines.Coda
-    4: routines.Save
+      trial: routines.TrialA
+      end: routines.EndOfA
+    3: routines.Prelude_B
+    4: BlockSequence:
+      trialList: trials
+      start: routines.Block.Start
+      trial: routines.TrialB
+    5: routines.Coda
+    6: routines.Save
 
 
 

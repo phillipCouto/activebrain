@@ -1,0 +1,2 @@
+Condition,List,Stimulus,solution,TrialNum
+Generate,1.00,fried/dumpling/out,chicken,1

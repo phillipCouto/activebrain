@@ -1,13 +1,18 @@
 
+<p>
+<p>
+
+ **STOP!!**
+
+ **READ** the following Instructions **CAREFULLY**
+
+
 Remote Associates Task
 ======================
 
-The Remote Associates Task is a test of problem solving. You need to think of a word that connects 3 cue words. The test will be administered in 2 parts.
+You will see 3 seemingly unrelated words and need to choose 1 different word to connect all 3. 
 
-In the first part you will read two sets of three words. You will decide which word from the second set connects the words from the first set.
-When you have decided select your answer using the mouse. You will receive as many problems as you can complete in 1 minute.
-
-Try to answer as quickly as possible.
+The first test will be multiple choice.
 
 ---------------------------------------------------------------
 
@@ -15,25 +20,16 @@ Try to answer as quickly as possible.
 
 Example 1.
 
-** Time / Weigh / Last **
+Problem: **Time / Weigh / Last**
 
-- OUT
-- BACK
-- BAY
+1) OUT
+2) BACK
+3) BAY
 
 
-**Solution**: Time*out* / *Out*weigh / *Out*last
+**Correct Solution**: Time*out* / *Out*weigh / *Out*last
 
--------------------------------------------------------------------
+Now try one. 
 
-Example 2.
+**Press any key when you are ready.**
 
-** Mower / Gnome / Fertilizer **
-
-- GREEN
-- CROP
-- LAWN ?
-
-**Solution**: *Lawn* mower / *Lawn* gnome / *Lawn* fertilizer
-
-**Press any key to continue**

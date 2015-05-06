@@ -1,0 +1,2 @@
+Condition,List,ProblemStim,AnswerStim1,AnswerStim2,AnswerStim3,CorrectAnswer,solution,TrialNum
+Recognition,1,mower/gnome/fertilizer,green,crop,lawn,3,lawn,1

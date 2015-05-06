@@ -1,9 +1,12 @@
 Remote Associates Task
 ======================
 
-We will now begin with Part 1. Remember, you will see two sets of three words and match one word from the second set, to connect the words in the first set.
-Select the correct words from the set of choices.
+You will have 1 minute to answer as many sets as you can by typing your answers in the empty boxes provided. 
 
-You will receive as many problems as you can complete in 1 minute. Try to answer as quickly as you can.
+You can answer in any order. 
 
-When you are ready to begin Part 1, **press any key**.
+You can use the mouse to move from box to box, or enter tab to move to the next box.
+ 
+**Press any key** when you are ready to begin.
+
+

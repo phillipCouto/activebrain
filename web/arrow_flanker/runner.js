@@ -4,26 +4,6 @@
 
   _ = Psy._;
 
-
-  /*
-  
-    Task:
-      name: "arrow_flanker"
-  
-      Conditions:
-        Crossed:
-            flanker:
-              levels: ["congruent", "incongruent"]
-            centerArrow:
-              levels: ["left", "right"]
-        Uncrossed:
-            flankerArrow:
-              levels: ["left", "right"]
-              choose: (trial) -> ...
-      Items:
-        flankerArrow:
-   */
-
   this.ArrowFlanker = {};
 
   this.ArrowFlanker.experiment = {
@@ -31,7 +11,7 @@
       Prelude: {
         Events: {
           1: {
-            Markdown: "\nFlanker Task\n==========================\n\nOn every trial a central arrow will appear surrounded by arrows on either side.\nYour goal is to **focus on the central arrow** and decide whether it points left or right.\n\n  * If the central arrow points <-- left, press the **'g'** key.\n\n  * If the central arrow points --> right, press the **'h'** key.\n\n  * If your response is correct, the screen will briefly turn green.\n\n  * If your response is incorrect, the screen will briefly turn red.\n\n\nAnswer as quickly and accurately as possible.\n\n**Press any key to continue**\n\n",
+            Markdown: "\n<p>\n<p>\n\n**STOP!!**\n\n**READ** the following Instructions **CAREFULLY**\n\nFlanker Task\n==========================\n\nOn every trial a central arrow will appear surrounded by arrows on either side.\nYour goal is to focus on the central arrow and decide whether it points left or right.\n\n  * If the central arrow points <-- left, press the **left arrow** key.\n\n  * If the central arrow points --> right, press the **right arrow** key.\n\n  * If your response is correct, the screen will briefly turn green.\n\n  * If your response is incorrect, the screen will briefly turn red.\n\n  * make your decision as fast as you can.\n\nPress any key to continue\n-------------------------\n",
             Next: {
               AnyKey: {}
             }
@@ -114,8 +94,8 @@
               Next: {
                 KeyPress: {
                   id: "answer",
-                  keys: ['g', 'h'],
-                  correct: this.trial.centerArrow === "left" ? 'g' : 'h',
+                  keys: ['left', 'right'],
+                  correct: this.trial.centerArrow === "left" ? 'left' : 'right',
                   timeout: 1500
                 }
               }
@@ -240,7 +220,7 @@
 
   fnode = Psy.FactorSetNode.build(factorSet);
 
-  trials = fnode.trialList(4, 4);
+  trials = fnode.trialList(3, 4);
 
   trials = trials.bind(function(record) {
     return {
@@ -269,5 +249,3 @@
   })(this);
 
 }).call(this);
-
-//# sourceMappingURL=runner.map

@@ -34,7 +34,7 @@ var (
 	accountCheck    time.Duration
 	tokenExpiration time.Duration
 	rpool           *pool.Pool
-	sessCountMonths = 1
+	sessCountMonths = 12
 
 	accounts = NewAccounts()
 )

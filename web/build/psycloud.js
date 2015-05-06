@@ -10102,7 +10102,7 @@ require.define('85', function(module, exports, __dirname, __filename, undefined)
 });
 require.define('84', function(module, exports, __dirname, __filename, undefined){
 (function () {
-    var AnyKey, KeyPress, KeyResponse, Q, Response, ResponseData, SpaceKey, i, keyTable, utils, _, _i, _j, __hasProp = {}.hasOwnProperty, __extends = function (child, parent) {
+    var AnyKey, KeyPress, KeyResponse, Q, Response, ResponseData, SpaceKey, i, key, keyTable, reverseKeyTable, utils, val, _, _i, _j, _len, __hasProp = {}.hasOwnProperty, __extends = function (child, parent) {
             for (var key in parent) {
                 if (__hasProp.call(parent, key))
                     child[key] = parent[key];
@@ -10162,8 +10162,10 @@ require.define('84', function(module, exports, __dirname, __filename, undefined)
     for (i = _i = 1; _i < 20; i = ++_i) {
         keyTable[111 + i] = 'f' + i;
     }
-    for (i = _j = 1; _j <= 9; i = ++_j) {
-        keyTable[i + 96];
+    reverseKeyTable = {};
+    for (val = _j = 0, _len = keyTable.length; _j < _len; val = ++_j) {
+        key = keyTable[val];
+        reverseKeyTable[val] = key;
     }
     KeyResponse = function (_super) {
         __extends(KeyResponse, _super);
@@ -10215,34 +10217,32 @@ require.define('84', function(module, exports, __dirname, __filename, undefined)
             return KeyPress.__super__.constructor.apply(this, arguments);
         }
         KeyPress.prototype.activate = function (context, stimulus) {
-            var deferred, keyStream;
+            var deferred, handleKey;
             this.startTime = utils.getTimestamp();
             this.promiseResolved = false;
             deferred = Q.defer();
-            keyStream = context.keypressStream();
             if (this.spec.timeout != null) {
                 this.resolveOnTimeout(deferred, this.spec.timeout, stimulus);
             }
-            keyStream.filter(function (_this) {
-                return function (event) {
-                    var char;
-                    char = String.fromCharCode(event.keyCode);
-                    return _.contains(_this.spec.keys, char);
-                };
-            }(this)).take(1).onValue(function (_this) {
-                return function (filtered) {
+            handleKey = function (_this) {
+                return function (key, e) {
                     var Acc, resp, timeStamp;
-                    console.log('captured key:', filtered);
-                    console.log('charCode:', String.fromCharCode(filtered.keyCode));
-                    console.log('correct:', _this.spec.correct);
+                    console.log('handling key', key);
+                    console.log('handling event', e);
                     timeStamp = utils.getTimestamp();
-                    Acc = _.contains(_this.spec.correct, String.fromCharCode(filtered.keyCode));
-                    console.log('acc:', Acc);
-                    resp = _this.createResponseData(timeStamp, _this.startTime, Acc, String.fromCharCode(filtered.keyCode));
+                    Acc = _.contains(_this.spec.correct, key);
+                    console.log('ACC', Acc);
+                    resp = _this.createResponseData(timeStamp, _this.startTime, Acc, key);
                     resp = _.extend(_this.baseResponse(stimulus), resp);
-                    console.log('pre resp', resp);
                     _this.promiseResolved = true;
                     return deferred.resolve(new ResponseData(resp));
+                };
+            }(this);
+            _.forEach(this.spec.keys, function (_this) {
+                return function (key) {
+                    return Mousetrap.bind(key, function (e) {
+                        return handleKey(key, e);
+                    }, 'keydown');
                 };
             }(this));
             return deferred.promise;
@@ -14026,7 +14026,6 @@ require.define('120', function(module, exports, __dirname, __filename, undefined
         };
         Receiver.prototype.activate = function (context, stimulus) {
             var callback, deferred, startTime;
-            console.log('activating receiver!');
             console.log(this.spec.signal);
             Receiver.__super__.activate.call(this, context, stimulus);
             deferred = Q.defer();
@@ -14034,7 +14033,6 @@ require.define('120', function(module, exports, __dirname, __filename, undefined
             callback = function (_this) {
                 return function (args) {
                     var resp;
-                    console.log('signal received', _this.spec);
                     resp = _this.baseResponse(stimulus);
                     resp.name = 'Receiver';
                     resp.signal = _this.spec.signal;
@@ -14051,12 +14049,8 @@ require.define('120', function(module, exports, __dirname, __filename, undefined
                 };
             }(this);
             if (this.spec.id != null) {
-                console.log('adding callback reaction for', this.spec.signal);
-                console.log('id is', this.spec.id);
                 stimulus.addReaction(this.spec.signal, callback, { id: this.spec.id });
             } else {
-                console.log('adding callback reaction for', this.spec.signal);
-                console.log('id is', this.spec.id);
                 this.spec.id = stimulus.id;
                 stimulus.addReaction(this.spec.signal, callback, { id: this.spec.id });
             }

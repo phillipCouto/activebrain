@@ -2,10 +2,20 @@ _ = Psy._
 @AST = {}
 
 
+
+
 instructions = """
+          <p>
+          <p>
+
+          **STOP!!**
+
+          **READ** the following Instructions **CAREFULLY**
+
 
           Arithmetic Systems Task
           ==========================
+
 
           This will be a test of arithmetic skill. You will be solving basic subtraction and multiplication problems.
           Problems will appear on the screen. Solve the problem, and type the answer using the keyboard.
@@ -152,8 +162,8 @@ instructions = """
           else
             "Incorrect!"
 
-          if @response[1].RT > 2000
-            message += " -- Too slow!"
+          if @response[1].RT > 4000
+            message += " -- Try to go faster!"
           Text:
             content: message
             position: "center"
@@ -180,6 +190,7 @@ instructions = """
                 Correct: obj.event.val == obj.trial.Answer
                 ProblemID: obj.trial.ProblemID
                 Problem: obj.trial.Problem
+                Size: obj.trial.Size
                 Task: "Arithmetic"
               console.log("logdat", logdat)
               context.set("resultObject", logdat)
@@ -249,6 +260,8 @@ instructions = """
 
   if sessionNumber?
     context.set("sessionNumber", sessionNumber)
+  else
+    sessionNumber = 1
 
   console.log("session Number", context.get("sessionNumber"))
   console.log("subject Number", context.get("subjectNumber"))
@@ -259,8 +272,16 @@ instructions = """
   design_prac = Psy.loadTable("design/AST_Practice.txt", separator=",")
   console.log("prac:", design_prac)
 
-  design_sub = Psy.loadTable("design/AST_SubList" + sessionNumber + ".txt", separator=",")
-  design_mul = Psy.loadTable("design/AST_MulList" + sessionNumber + ".txt", separator=",")
+  listNumber =
+    switch sessionNumber
+      when 1 then 1
+      when 2 then 2
+      when 3 then 1
+      when 4 then 2
+      else 1
+
+  design_sub = Psy.loadTable("design/AST_SubList" + listNumber + ".txt", separator=",")
+  design_mul = Psy.loadTable("design/AST_MulList" + listNumber + ".txt", separator=",")
 
 
   design_sub = design_sub.shuffle()
