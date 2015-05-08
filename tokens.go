@@ -56,6 +56,8 @@ func GetAuthToken(token string) (*AuthToken, error) {
 		return nil, err
 	}
 	auth.Num = int(temp)
+	auth.ID = token
+
 	return &auth, nil
 }
 
