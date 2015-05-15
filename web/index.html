@@ -20,8 +20,13 @@
 
     <script type="text/javascript" src="./activeb_master.js"></script>
     <script type="application/javascript">
-        console.log("starting")
-        Active_Brain.teststart();
+        console.log("starting");
+        var test = false;
+        if (test) {
+            Active_Brain.teststart();
+        } else {
+            Active_Brain.start();
+        }
 
     </script>
 </body>

@@ -2,9 +2,9 @@
 <p>
 <p>
 
- **STOP!!**
-
- **READ** the following Instructions **CAREFULLY**
+# **<span style="color:red">STOP!</span>**
+ 
+## **READ** the following Instructions **CAREFULLY**
 
 
 Remote Associates Task

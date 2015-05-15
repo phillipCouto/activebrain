@@ -164,7 +164,7 @@ _ = Psy._
       PracticeEnd:
         Text:
           content: [
-                    "Solution: Fried *Chicken* / *Chicken* Dumpling / *Chicken* Out)",
+                    "Solution: Fried *Chicken* / *Chicken* Dumpling / *Chicken* Out",
                     "",
                     "",
                     "Press any key to continue"]
@@ -232,7 +232,7 @@ _ = Psy._
                     trialNumber: index
                     blockNumber: context.get("State.blockNumber")
                     solution: record.solution
-                    Task: "Remote Associates"
+                    Task: "Remote_Associates"
                   resultObj[index] = res
                   console.log(resultObj)
                   #$("#nextbutton").removeClass("disabled")
@@ -289,9 +289,14 @@ _ = Psy._
     8: routines.Save
 
 @RAT.start = (sessionNumber, subjectNumber) =>
+  console.log("RAT: sessionNumber is:", sessionNumber)
+  console.log("RAT: subjectNumber is:", subjectNumber)
+
   if sessionNumber > 4
     console.log("warning: sessionNumber > 4, resetting to 1")
     sessionNumber = 1
+
+
 
   design_recog = Psy.loadTable("design/RAT_RecList" + sessionNumber + ".txt", ",")
   design_gen = Psy.loadTable("design/RAT_GenList" + sessionNumber + ".txt", ",")

@@ -11,7 +11,7 @@
       Prelude: {
         Events: {
           1: {
-            Markdown: "\n<p>\n<p>\n\n**STOP!!**\n\n**READ** the following Instructions **CAREFULLY**\n\nFlanker Task\n==========================\n\nOn every trial a central arrow will appear surrounded by arrows on either side.\nYour goal is to focus on the central arrow and decide whether it points left or right.\n\n  * If the central arrow points <-- left, press the **left arrow** key.\n\n  * If the central arrow points --> right, press the **right arrow** key.\n\n  * If your response is correct, the screen will briefly turn green.\n\n  * If your response is incorrect, the screen will briefly turn red.\n\n  * make your decision as fast as you can.\n\nPress any key to continue\n-------------------------\n",
+            Markdown: "\n<p>\n<p>\n\n# **<span style=\"color:red\">STOP!</span>**\n\n## **READ** the following Instructions **CAREFULLY**\n\nFlanker Task\n==========================\n\nOn every trial a central arrow will appear surrounded by arrows on either side.\nYour goal is to focus on the central arrow and decide whether it points left or right.\n\n  * If the central arrow points <-- left, press the **left arrow** key.\n\n  * If the central arrow points --> right, press the **right arrow** key.\n\n  * If your response is correct, the screen will briefly turn green.\n\n  * If your response is incorrect, the screen will briefly turn red.\n\n  * make your decision as fast as you can.\n\nPress any key to continue\n-------------------------\n",
             Next: {
               AnyKey: {}
             }

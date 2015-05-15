@@ -6,7 +6,7 @@
 
   this.TrailsB = {};
 
-  instructionsA = "<p>\n<p>\n\n**STOP!!**\n\n**READ** the following Instructions **CAREFULLY**\n\nTrail Making Task, Part 1\n==========================\nIn this task you will make a \"trail\" connecting circles in a particular order.\n\nYou will see a number circles appear on the screen. Each circle will have a number (1,2,3 ...) inside.\n\nYour goal is to make a trail linking all the numbered circles in order.\n\nYou will first look for the circle with \"1\" inside, click it, and then find \"2\" and click that, and so on.\n\nTo make a path between two circles, simply click the next circle in the path.\n\nWhen you select the correct circle, it will turn yellow. When you complete the trail, the final circle will turn red.\n\nPress any key to continue\n-------------------------\n";
+  instructionsA = "<p>\n<p>\n\n# **<span style=\"color:red\">STOP!</span>**\n\n## **READ** the following Instructions **CAREFULLY**\n\nTrail Making Task, Part 1\n==========================\nIn this task you will make a \"trail\" connecting circles in a particular order.\n\nYou will see a number circles appear on the screen. Each circle will have a number (1,2,3 ...) inside.\n\nYour goal is to make a trail linking all the numbered circles in order.\n\nYou will first look for the circle with \"1\" inside, click it, and then find \"2\" and click that, and so on.\n\nTo make a path between two circles, simply click the next circle in the path.\n\nWhen you select the correct circle, it will turn yellow. When you complete the trail, the final circle will turn red.\n\nPress any key to continue\n-------------------------\n";
 
   instructionsB = "\n<p>\n<p>\n\n**STOP!!**\n\n**READ** the following Instructions **CAREFULLY**\n\nTrail Making Task, Part 2\n==========================\n\nIn this task you will make a \"trail\" connecting circles in a particular order.\n\nYou will see a number circles appear on the screen. Each circle will have a number (1,2,3 ...) or a letter inside.\n\n\nYour goal is to make a trail linking all the numbered circles and lettered circles alternating in order between numbers and letters.\n\nFor example: 1 -> A -> 2 -> B -> 3 -> C\n\nTo make a path between two circles, simply click the next circle in the path.\n\nWhen you select the correct circle, it will turn yellow. When you complete the trail, the final circle will turn red.\n\n\nPress any key to continue\n-------------------------\n";
 
@@ -60,7 +60,7 @@
             RT: ev.RT,
             timeElapsed: ev.timeElapsed,
             index: ev.index,
-            Task: "TrailsB",
+            Task: "TrailsA",
             trialNumber: context.get("State.trialNumber"),
             blockNumber: context.get("State.blockNumber"),
             node: ev.node_id

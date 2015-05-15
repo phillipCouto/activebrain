@@ -6,7 +6,7 @@
 
   this.AST = {};
 
-  instructions = "<p>\n<p>\n\n**STOP!!**\n\n**READ** the following Instructions **CAREFULLY**\n\n\nArithmetic Systems Task\n==========================\n\n\nThis will be a test of arithmetic skill. You will be solving basic subtraction and multiplication problems.\nProblems will appear on the screen. Solve the problem, and type the answer using the keyboard.\nThen press enter to proceed to the next question.\n\nAnswer as **quickly as possible**.\n\n\nProblems will appear in 2 blocks of 28. 1 of subtraction and 1 of multiplication.\n\nThere will be a short practice set so you can get used to answering.\n\n**Press any key to continue**\n\n";
+  instructions = "<p>\n<p>\n\n# **<span style=\"color:red\">STOP!</span>**\n\n## **READ** the following Instructions **CAREFULLY**\n\n\nArithmetic Systems Task\n==========================\n\n\nThis will be a test of arithmetic skill. You will be solving basic subtraction and multiplication problems.\nProblems will appear on the screen. Solve the problem, and type the answer using the keyboard.\nThen press enter to proceed to the next question.\n\nAnswer as **quickly as possible**.\n\n\nProblems will appear in 2 blocks of 28. 1 of subtraction and 1 of multiplication.\n\nThere will be a short practice set so you can get used to answering.\n\n**Press any key to continue**\n\n";
 
   this.AST.experiment = {
     Define: {
@@ -295,7 +295,7 @@
 
   this.AST.start = (function(_this) {
     return function(sessionNumber, subjectNumber) {
-      var context, design_mul, design_prac, design_sub, listNumber, separator;
+      var context, design_mul, design_prac, design_sub, listNumber, listOrders, order, orderSeq, separator;
       context = new Psy.createContext();
       if (subjectNumber != null) {
         context.set("active_brain", true);
@@ -309,26 +309,13 @@
       } else {
         sessionNumber = 1;
       }
-      console.log("session Number", context.get("sessionNumber"));
-      console.log("subject Number", context.get("subjectNumber"));
-      console.log("active_brain", context.get("active_brain"));
-      console.log("loading practice");
+      console.log("session Number", sessionNumber);
+      console.log("subject Number", subjectNumber);
       design_prac = Psy.loadTable("design/AST_Practice.txt", separator = ",");
-      console.log("prac:", design_prac);
-      listNumber = (function() {
-        switch (sessionNumber) {
-          case 1:
-            return 1;
-          case 2:
-            return 2;
-          case 3:
-            return 1;
-          case 4:
-            return 2;
-          default:
-            return 1;
-        }
-      })();
+      listOrders = [[1, 2, 1, 2], [2, 1, 2, 1], [1, 2, 2, 1], [2, 1, 1, 2]];
+      order = subjectNumber % 4;
+      orderSeq = listOrders[order];
+      listNumber = orderSeq[sessionNumber - 1];
       design_sub = Psy.loadTable("design/AST_SubList" + listNumber + ".txt", separator = ",");
       design_mul = Psy.loadTable("design/AST_MulList" + listNumber + ".txt", separator = ",");
       design_sub = design_sub.shuffle();

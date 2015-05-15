@@ -20,9 +20,9 @@ _ = Psy._
           <p>
           <p>
 
-          **STOP!!**
+          # **<span style="color:red">STOP!</span>**
 
-          **READ** the following Instructions **CAREFULLY**
+          ## **READ** the following Instructions **CAREFULLY**
 
           Flanker Task
           ==========================

@@ -8,9 +8,9 @@ instructions = """
           <p>
           <p>
 
-          **STOP!!**
+          # **<span style="color:red">STOP!</span>**
 
-          **READ** the following Instructions **CAREFULLY**
+          ## **READ** the following Instructions **CAREFULLY**
 
 
           Arithmetic Systems Task
@@ -263,22 +263,20 @@ instructions = """
   else
     sessionNumber = 1
 
-  console.log("session Number", context.get("sessionNumber"))
-  console.log("subject Number", context.get("subjectNumber"))
-  console.log("active_brain", context.get("active_brain"))
-
-  console.log("loading practice")
+  console.log("session Number", sessionNumber)
+  console.log("subject Number", subjectNumber)
 
   design_prac = Psy.loadTable("design/AST_Practice.txt", separator=",")
-  console.log("prac:", design_prac)
 
-  listNumber =
-    switch sessionNumber
-      when 1 then 1
-      when 2 then 2
-      when 3 then 1
-      when 4 then 2
-      else 1
+  listOrders = [[1,2,1,2],
+                [2,1,2,1],
+                [1,2,2,1],
+                [2,1,1,2]]
+
+  order = subjectNumber % 4
+  orderSeq = listOrders[order]
+  listNumber = orderSeq[sessionNumber-1]
+
 
   design_sub = Psy.loadTable("design/AST_SubList" + listNumber + ".txt", separator=",")
   design_mul = Psy.loadTable("design/AST_MulList" + listNumber + ".txt", separator=",")

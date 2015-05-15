@@ -9,9 +9,9 @@ instructionsA = """
           <p>
           <p>
 
-          **STOP!!**
+          # **<span style="color:red">STOP!</span>**
 
-          **READ** the following Instructions **CAREFULLY**
+          ## **READ** the following Instructions **CAREFULLY**
 
           Trail Making Task, Part 1
           ==========================
@@ -105,7 +105,7 @@ instructionsB = """
           RT: ev.RT
           timeElapsed: ev.timeElapsed
           index: ev.index
-          Task: "TrailsB"
+          Task: "TrailsA"
           trialNumber: context.get("State.trialNumber")
           blockNumber: context.get("State.blockNumber")
           node: ev.node_id
