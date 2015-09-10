@@ -68,7 +68,7 @@ func main() {
 	}
 	rpool, err = pool.NewPool(purl.Scheme, purl.Host, 5)
 	if err != nil {
-		log.Fatalf("failed to connect to redis, %v", err)
+		log.Fatalf("AbortWithErrored to connect to redis, %v", err)
 	}
 
 	//Start up the background services that keep the application in check
@@ -80,7 +80,7 @@ func main() {
 	//Setup Gin
 	r := gin.Default()
 	r.Use(authenticated())
-	r.LoadHTMLTemplates("*.tmpl")
+	r.LoadHTMLFiles("*.tmpl")
 
 	r.POST("/results", postResults)
 	r.GET("/login", getLogin)
@@ -209,7 +209,7 @@ func getLogout(c *gin.Context) {
 	token := c.MustGet("token").(*AuthToken)
 
 	if err := ExpireToken(token); err != nil {
-		c.Fail(500, err)
+		c.AbortWithError(500, err)
 		return
 	}
 	c.Redirect(303, "/login")
@@ -222,14 +222,14 @@ func postLogin(c *gin.Context) {
 	var req AuthenticateRequest
 
 	if err := binding.Form.Bind(c.Request, &req); err != nil {
-		c.Fail(500, err)
+		c.AbortWithError(500, err)
 	}
 
 	if accounts.Challenge(&req) {
 
 		token, err := NewAuthToken(req.Username)
 		if err != nil {
-			c.Fail(500, err)
+			c.AbortWithError(500, err)
 			return
 		}
 
@@ -263,18 +263,18 @@ func postResults(c *gin.Context) {
 	sr := NewStoredResults(results)
 
 	if err := sr.writeToDisk(token); err != nil {
-		c.Fail(500, err)
+		c.AbortWithError(500, err)
 		return
 	}
 
 	if err := IncrementTasks(token); err != nil {
-		c.Fail(500, err)
+		c.AbortWithError(500, err)
 		return
 	}
 	//Expire the token once 4 tasks have been executed.
 	if token.Tasks >= 4 {
 		if err := ExpireToken(token); err != nil {
-			c.Fail(500, err)
+			c.AbortWithError(500, err)
 			return
 		}
 	}
