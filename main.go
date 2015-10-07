@@ -80,7 +80,7 @@ func main() {
 	//Setup Gin
 	r := gin.Default()
 	r.Use(authenticated())
-	r.LoadHTMLFiles("*.tmpl")
+	r.LoadHTMLGlob("*.tmpl")
 
 	r.POST("/results", postResults)
 	r.GET("/login", getLogin)
