@@ -31,7 +31,7 @@
 //
 //	// Checking Err field directly
 //
-//	err = client.Cmd("SET", "foo", "bar", "EX", 3600).Err
+//	err = client.Cmd("PING").Err
 //	if err != nil {
 //		// handle err
 //	}
