@@ -9,7 +9,7 @@ This is the project for the server that handles the following responsibilities:
 
  This application is best deployed as a container using the docker compose.
  The server relies on redis to maintain the session data as it is short lived.
- 
+
 
 ## Requires
  - docker
@@ -41,6 +41,7 @@ username2:password2
 To run the full fledged server and client execute the commands below on the docker host:
 ```bash
 cd /tmp
+rm -rf active*
 git clone https://github.com/phillipCouto/activebrain.git
 git clone https://github.com/bbuchsbaum/active_brain.git
 cp -R active_brain/* activebrain/web/
@@ -48,5 +49,5 @@ cp -R active_brain/* activebrain/web/
 cd activebrain
 sudo docker build -t phillipcouto/activebrain .
 sudo docker rm -f activebrain
-sudo docker run -d --restart always -p 80:80 --name activebrain --link redis:redis -p 443:443 -v /data:/data phillipcouto/activebrain app -http ":80" -accounts "/data/accounts" -results "/data/results"
+sudo docker run -d --restart always -p 80:80 --name activebrain --link redis:redis -p 443:443 -v /data:/data phillipcouto/activebrain ./app -http ":80" -accounts "/data/accounts" -results "/data/results"
 ```
