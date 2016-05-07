@@ -50,4 +50,9 @@ cd activebrain
 sudo docker build -t phillipcouto/activebrain .
 sudo docker rm -f activebrain
 sudo docker run -d --restart always -p 80:80 --name activebrain --link redis:redis -p 443:443 -v /data:/data phillipcouto/activebrain ./app -http ":80" -accounts "/data/accounts" -results "/data/results"
+
+# To run the server with HTTPS
+# Move the private key into the /data folder and make sure the private key name
+# and certificate name match the path defined in the command below.
+sudo docker run -d --restart always -p 80:80 --name activebrain --link redis:redis -p 443:443 -v /data:/data phillipcouto/activebrain ./app -http ":80" -https ":443" -accounts "/data/accounts" -results "/data/results" -key "/data/private.key" -cert "/data/public.crt"
 ```
